@@ -49,7 +49,7 @@ if SERVER then
         local totalHealth = 0
 
         RunConsoleCommand("ttt_haste", "0")
-        RunConsoleCommand("ttt_roundtime_minutes", "5")
+        RunConsoleCommand("ttt_roundtime_minutes", "10")
 
         timer.Create("StartMusic", 0, 1, function()
             for _, ply in ipairs(player.GetAll()) do
