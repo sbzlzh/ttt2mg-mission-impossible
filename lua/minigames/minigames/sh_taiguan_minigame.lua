@@ -70,6 +70,8 @@ if SERVER then
         end)
 
         for i = 1, #plys do
+            plys[i]:StripWeapons()  -- 移除所有武器
+
             if not traitorSet then
                 plys[i]:SetRole(ROLE_TRAITOR)
                 traitorSet = true
@@ -80,6 +82,7 @@ if SERVER then
                 plys[i]:Give("weapon_ttt_minigames_revolver")
             end
             plys[i]:GiveAmmo(50, "AlyxGun")
+            plys[i]:Give("weapon_zm_improvised")
         end
 
         timer.Create("INNOCENTMinigame", 0, 1, function()
@@ -107,6 +110,25 @@ if SERVER then
         end
 
         SendFullStateUpdate()
+        hook.Add("PlayerCanPickupWeapon", "MinigameRestrictWeapons", function(ply, wep)
+            if wep:GetClass() ~= "weapon_ttt_minigames_traitor_revolver" and wep:GetClass() ~= "weapon_ttt_minigames_revolver" then
+                return false
+            end
+        end)
+
+        hook.Add("PlayerSwitchWeapon", "MinigameRestrictSwitchWeapon", function(ply, oldWep, newWep)
+            if newWep:GetClass() ~= "weapon_ttt_minigames_traitor_revolver" and newWep:GetClass() ~= "weapon_ttt_minigames_revolver" then
+                return false
+            end
+        end)
+
+        hook.Add("PlayerStartVoice", "MinigameMuteVoice", function(ply)
+            return false
+        end)
+
+        hook.Add("PlayerEndVoice", "MinigameMuteVoice", function(ply)
+            ply:StopSpeaking(true)
+        end)
     end
 
     function MINIGAME:OnDeactivation()
@@ -130,26 +152,8 @@ if SERVER then
         end
 
         hook.Remove("PlayerStartVoice", "MinigameMuteVoice")
+        hook.Remove("PlayerCanPickupWeapon", "MinigameRestrictWeapons")
+        hook.Remove("PlayerSwitchWeapon", "MinigameRestrictSwitchWeapon")
         hook.Remove("PlayerEndVoice", "MinigameMuteVoice")
     end
-
-    hook.Add("PlayerCanPickupWeapon", "MinigameRestrictWeapons", function(ply, wep)
-        if wep:GetClass() ~= "weapon_ttt_minigames_traitor_revolver" and wep:GetClass() ~= "weapon_ttt_minigames_revolver" then
-            return false
-        end
-    end)
-
-    hook.Add("PlayerSwitchWeapon", "MinigameRestrictSwitchWeapon", function(ply, oldWep, newWep)
-        if newWep:GetClass() ~= "weapon_ttt_minigames_traitor_revolver" and newWep:GetClass() ~= "weapon_ttt_minigames_revolver" then
-            return false
-        end
-    end)
-
-    hook.Add("PlayerStartVoice", "MinigameMuteVoice", function(ply)
-        return false
-    end)
-
-    hook.Add("PlayerEndVoice", "MinigameMuteVoice", function(ply)
-        ply:StopSpeaking(true)
-    end)
 end
