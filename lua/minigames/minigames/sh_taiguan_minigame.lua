@@ -110,24 +110,21 @@ if SERVER then
         end
 
         SendFullStateUpdate()
+
         hook.Add("PlayerCanPickupWeapon", "MinigameRestrictWeapons", function(ply, wep)
-            if wep:GetClass() ~= "weapon_ttt_minigames_traitor_revolver" and wep:GetClass() ~= "weapon_ttt_minigames_revolver" then
+            if wep:GetClass() ~= "weapon_ttt_minigames_traitor_revolver" and wep:GetClass() ~= "weapon_ttt_minigames_revolver" and wep:GetClass() ~= "weapon_zm_revolver"then
                 return false
             end
         end)
 
         hook.Add("PlayerSwitchWeapon", "MinigameRestrictSwitchWeapon", function(ply, oldWep, newWep)
-            if newWep:GetClass() ~= "weapon_ttt_minigames_traitor_revolver" and newWep:GetClass() ~= "weapon_ttt_minigames_revolver" then
+            if newWep:GetClass() ~= "weapon_ttt_minigames_traitor_revolver" and newWep:GetClass() ~= "weapon_ttt_minigames_revolver" and newWep:GetClass() ~= "weapon_zm_revolver" then
                 return false
             end
         end)
 
-        hook.Add("PlayerStartVoice", "MinigameMuteVoice", function(ply)
+        hook.Add("PlayerCanHearPlayersVoice", "MinigameMuteVoice", function(listener, talker)
             return false
-        end)
-
-        hook.Add("PlayerEndVoice", "MinigameMuteVoice", function(ply)
-            ply:StopSpeaking(true)
         end)
     end
 
@@ -151,9 +148,8 @@ if SERVER then
             timer.Remove("StartFinal2Music")
         end
 
-        hook.Remove("PlayerStartVoice", "MinigameMuteVoice")
         hook.Remove("PlayerCanPickupWeapon", "MinigameRestrictWeapons")
         hook.Remove("PlayerSwitchWeapon", "MinigameRestrictSwitchWeapon")
-        hook.Remove("PlayerEndVoice", "MinigameMuteVoice")
+        hook.Remove("PlayerCanHearPlayersVoice", "MinigameMuteVoice")
     end
 end
