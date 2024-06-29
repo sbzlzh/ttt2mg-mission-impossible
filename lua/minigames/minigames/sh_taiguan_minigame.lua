@@ -4,32 +4,21 @@ end
 
 MINIGAME.author = "sbzl"
 MINIGAME.contact = "TTT2 Discord"
-MINIGAME.conVarData = {
-    ttt2_minigames_traitor_only = {
-        checkbox = true,
-        desc = "ttt2_minigames_traitor_only (Def. 1)"
-    },
-    --[[ttt2_min_taig_armor = {
-        checkbox = true,
-        desc = "ttt2_min_taig_armor (Def. 100)"
-    }]]
-}
 
 if CLIENT then
     MINIGAME.lang = {
         name = {
-            en = "Mission Impossible"
+            en = "Mission Impossible",
+            zh_hans = "抬棺模式"
         },
         desc = {
-            en = "One traitor,everyone else is innocent. Silenced shots. Players can only use Deagle."
+            en = "One traitor, everyone else is innocent. Silenced shots. Players can only use Deagle.",
+            zh_hans = "一个叛徒，其他人都是无辜的。消音射击。玩家只能使用沙漠之鹰."
         }
     }
 end
 
 if SERVER then
-    local ttt2_minigames_traitor_only = CreateConVar("ttt2_minigames_traitor_only", "1", { FCVAR_ARCHIVE }, "Only one traitor, everyone else is innocent")
-    --local ttt2_min_taig_armor = CreateConVar("ttt2_min_taig_armor", "100", { FCVAR_ARCHIVE }, "set armor")
-
     function GetPlayersByRole(role)
         local players = {}
         for _, ply in ipairs(player.GetAll()) do
@@ -55,6 +44,10 @@ if SERVER then
     end
 
     function MINIGAME:OnActivation()
+        local traitorSet = false
+        local plys = util.GetAlivePlayers()
+        local totalHealth = 0
+
         RunConsoleCommand("ttt_haste", "0")
         RunConsoleCommand("ttt_roundtime_minutes", "5")
 
@@ -76,39 +69,44 @@ if SERVER then
             end)
         end)
 
-        if ttt2_minigames_traitor_only:GetBool() then
-            local traitorSet = false
-            local plys = util.GetAlivePlayers()
-            local totalHealth = 0
-            --local totalArmor = 0
-            for i = 1, #plys do
-                local ply = plys[i]
-                if not traitorSet then
-                    ply:SetRole(ROLE_TRAITOR)
-                    traitorSet = true
-                    ply:Give("weapon_ttt_minigames_traitor_revolver")
-                    ply:GiveAmmo(50, "AlyxGun")
-                else
-                    ply:SetRole(ROLE_INNOCENT)
-                    totalHealth = totalHealth + ply:Health()
-                    --ply:SetArmor(100)
-                    --totalArmor = totalArmor + ply:Armor()
-                    ply:Give("weapon_ttt_minigames_revolver")
-                    ply:GiveAmmo(50, "AlyxGun")
-                end
+        for i = 1, #plys do
+            if not traitorSet then
+                plys[i]:SetRole(ROLE_TRAITOR)
+                traitorSet = true
+                plys[i]:Give("weapon_ttt_minigames_traitor_revolver")
+            else
+                plys[i]:SetRole(ROLE_INNOCENT)
+                totalHealth = totalHealth + plys[i]:Health()
+                plys[i]:Give("weapon_ttt_minigames_revolver")
             end
-            if traitorSet then
-                local traitor = GetPlayersByRole(ROLE_TRAITOR)[1]
-                if traitor then
-                    traitor:SetHealth(totalHealth)
-                   -- traitor:SetArmor(totalArmor / 2)
-                    --print("Traitor's armor: " .. traitor:Armor())
-                end
-            end
-            SendFullStateUpdate()
-        else
-            print("[TTT2][MINIGAMES][sh_jesters_minigame] ttt2_minigames_traitor_only is not enabled.")
+            plys[i]:GiveAmmo(50, "AlyxGun")
         end
+
+        timer.Create("INNOCENTMinigame", 0, 1, function()
+            for i = 1, #plys do
+                if plys[i]:GetSubRole() == ROLE_INNOCENT then
+                    timer.Create("SuddenMinigame", 2, 2, function()
+                        plys[i]:SetArmor(100)
+                        plys[i]:SetMaxArmor(100)
+                    end)
+                    print(plys[i]:Nick() .. "的护甲值是：" .. plys[i]:Armor())
+                end
+            end
+        end)
+
+        -- Set traitor's health and armor after all innocents have been processed
+        if traitorSet then
+            local traitor = GetPlayersByRole(ROLE_TRAITOR)[1]
+            if traitor then
+                traitor:SetHealth(totalHealth * 2)
+                timer.Create("TRAITORMinigame", 1, 3, function()
+                    traitor:SetArmor(totalHealth / 2)
+                    traitor:SetMaxArmor(totalHealth / 2)
+                end)
+            end
+        end
+
+        SendFullStateUpdate()
     end
 
     function MINIGAME:OnDeactivation()
