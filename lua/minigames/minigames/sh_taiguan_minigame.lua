@@ -69,50 +69,47 @@ if SERVER then
             end)
         end)
 
-        for i = 1, #plys do
-            plys[i]:StripWeapons()  -- 移除所有武器
+        if #plys > 0 then
+            local traitorIndex = math.random(#plys)
+            local traitor = plys[traitorIndex]
 
-            if not traitorSet then
-                plys[i]:SetRole(ROLE_TRAITOR)
-                traitorSet = true
-                plys[i]:Give("weapon_ttt_minigames_traitor_revolver")
-            else
-                plys[i]:SetRole(ROLE_INNOCENT)
-                totalHealth = totalHealth + plys[i]:Health()
-                plys[i]:Give("weapon_ttt_minigames_revolver")
-            end
-            plys[i]:GiveAmmo(50, "AlyxGun")
-            plys[i]:Give("weapon_zm_improvised")
-        end
-
-        timer.Create("INNOCENTMinigame", 0, 1, function()
             for i = 1, #plys do
-                if plys[i]:GetSubRole() == ROLE_INNOCENT then
-                    timer.Create("SuddenMinigame", 2, 2, function()
-                        plys[i]:SetArmor(100)
-                        plys[i]:SetMaxArmor(100)
+                local ply = plys[i]
+                ply:StripWeapons()
+
+                if i == traitorIndex then
+                    ply:SetRole(ROLE_TRAITOR)
+                    traitorSet = true
+                    ply:Give("weapon_ttt_minigames_traitor_revolver")
+                else
+                    ply:SetRole(ROLE_INNOCENT)
+                    totalHealth = totalHealth + ply:Health()
+                    ply:Give("weapon_ttt_minigames_revolver")
+                end
+
+                ply:GiveAmmo(50, "AlyxGun")
+                ply:Give("weapon_zm_improvised")
+                ply:Give("weapon_zm_carry")
+                ply:Give("weapon_ttt_unarmed")
+            end
+
+            -- Set traitor's health and armor after all innocents have been processed
+            if traitorSet then
+                local traitor = GetPlayersByRole(ROLE_TRAITOR)[1]
+                if traitor then
+                    traitor:SetHealth(totalHealth * 2)
+                    timer.Create("TRAITORMinigame", 1, 3, function()
+                        traitor:SetArmor(totalHealth / 2)
+                        traitor:SetMaxArmor(totalHealth / 2)
                     end)
-                    print(plys[i]:Nick() .. "的护甲值是：" .. plys[i]:Armor())
                 end
             end
-        end)
 
-        -- Set traitor's health and armor after all innocents have been processed
-        if traitorSet then
-            local traitor = GetPlayersByRole(ROLE_TRAITOR)[1]
-            if traitor then
-                traitor:SetHealth(totalHealth * 2)
-                timer.Create("TRAITORMinigame", 1, 3, function()
-                    traitor:SetArmor(totalHealth / 2)
-                    traitor:SetMaxArmor(totalHealth / 2)
-                end)
-            end
+            SendFullStateUpdate()
         end
 
-        SendFullStateUpdate()
-
         hook.Add("PlayerCanPickupWeapon", "MinigameRestrictWeapons", function(ply, wep)
-            if wep:GetClass() ~= "weapon_ttt_minigames_traitor_revolver" and wep:GetClass() ~= "weapon_ttt_minigames_revolver" and wep:GetClass() ~= "weapon_zm_revolver"then
+            if wep:GetClass() ~= "weapon_ttt_minigames_traitor_revolver" and wep:GetClass() ~= "weapon_ttt_minigames_revolver" and wep:GetClass() ~= "weapon_zm_revolver" then
                 return false
             end
         end)
