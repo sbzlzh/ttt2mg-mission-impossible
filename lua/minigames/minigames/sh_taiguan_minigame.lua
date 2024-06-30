@@ -5,6 +5,24 @@ end
 MINIGAME.author = "sbzl"
 MINIGAME.contact = "TTT2 Discord"
 
+MINIGAME.conVarData = {
+    ttt2_minigames_taig_innocent_base_armor = {
+        slider = true,
+        min = 0,
+        max = 1,
+        desc = "ttt2_minigames_taig_innocent_base_armor (Def. 1)"
+    },
+    ttt2_minigames_taig_innocent_armor = {
+        slider = true,
+        min = 0,
+        max = 999,
+        desc = "ttt2_minigames_taig_innocent_armor (Def. 100)"
+    }
+}
+
+local ttt2_minigames_taig_innocent_base_armor = CreateConVar("ttt2_minigames_taig_innocent_base_armor", "1", { FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED }, "Whether to enable civilian armor?")
+local ttt2_minigames_taig_innocent_armor = CreateConVar("ttt2_minigames_taig_innocent_armor", "100", { FCVAR_ARCHIVE, FCVAR_NOTIFY, FCVAR_REPLICATED }, "Setting up the Innocents Armor.")
+
 if CLIENT then
     MINIGAME.lang = {
         name = {
@@ -93,19 +111,28 @@ if SERVER then
                 ply:Give("weapon_ttt_unarmed")
             end
 
-            -- Set traitor's health and armor after all innocents have been processed
-            if traitorSet then
-                local traitor = GetPlayersByRole(ROLE_TRAITOR)[1]
-                if traitor then
-                    traitor:SetHealth(totalHealth * 2)
-                    timer.Create("TRAITORMinigame", 1, 3, function()
-                        traitor:SetArmor(totalHealth / 2)
-                        traitor:SetMaxArmor(totalHealth / 2)
-                    end)
+            -- Ensure traitor and innocent roles are updated before setting armor
+            timer.Simple(0.1, function()
+                for i = 1, #plys do
+                    local ply = plys[i]
+                    if ply:GetRole() == ROLE_INNOCENT then
+                        if ttt2_minigames_taig_innocent_base_armor:GetBool() then
+                            ply:GiveArmor(GetConVar("ttt2_minigames_taig_innocent_armor"):GetInt())
+                        end
+                    end
                 end
-            end
 
-            SendFullStateUpdate()
+                -- Set traitor's health and armor after all innocents have been processed
+                if traitorSet then
+                    local traitor = GetPlayersByRole(ROLE_TRAITOR)[1]
+                    if traitor then
+                        traitor:SetHealth(totalHealth * 2)
+                        traitor:GiveArmor(totalHealth / 2)
+                    end
+                end
+
+                SendFullStateUpdate()
+            end)
         end
 
         hook.Add("PlayerCanPickupWeapon", "MinigameRestrictWeapons", function(ply, wep)
