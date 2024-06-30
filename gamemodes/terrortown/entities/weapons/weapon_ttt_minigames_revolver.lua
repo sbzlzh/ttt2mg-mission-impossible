@@ -34,8 +34,8 @@ SWEP.Primary.Sound = Sound("ttt/silencer.mp3")
 
 SWEP.HeadshotMultiplier = 4
 
-SWEP.AutoSpawnable = true
-SWEP.Spawnable = true
+SWEP.AutoSpawnable = false
+SWEP.Spawnable = false
 SWEP.AmmoEnt = "item_ammo_revolver_ttt"
 
 SWEP.UseHands = true

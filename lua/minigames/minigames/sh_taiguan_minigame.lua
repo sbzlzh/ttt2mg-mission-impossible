@@ -66,25 +66,28 @@ if SERVER then
         local plys = util.GetAlivePlayers()
         local totalHealth = 0
 
+        RunConsoleCommand("ttt_item_armor_block_blastdmg", "0")
+        RunConsoleCommand("ttt_item_armor_block_headshots", "0")
         RunConsoleCommand("ttt_haste", "0")
         RunConsoleCommand("ttt_roundtime_minutes", "10")
+        RunConsoleCommand("ttt_haste_starting_minutes", "10")
 
         timer.Create("StartMusic", 0, 1, function()
             for _, ply in ipairs(player.GetAll()) do
-                ply:SendLua('surface.PlaySound("ttt/astronomia.mp3")')
+                ply:EmitSound("ttt/astronomia.mp3", 75, 100, 0.1)
             end
+        end)
 
-            timer.Create("StartFinalMusic", 196, 1, function()
-                for _, ply in ipairs(player.GetAll()) do
-                    ply:SendLua('surface.PlaySound("ttt/global_final.mp3")')
-                end
+        timer.Create("StartFinalMusic", 600 - 136, 1, function()
+            for _, ply in ipairs(player.GetAll()) do
+                ply:EmitSound("ttt/global_final.mp3", 75, 100, 0.2)
+            end
+        end)
 
-                timer.Create("StartFinal2Music", 78, 1, function()
-                    for _, ply in ipairs(player.GetAll()) do
-                        ply:SendLua('surface.PlaySound("ttt/global_final2.mp3")')
-                    end
-                end)
-            end)
+        timer.Create("StartFinal2Music", 600 - 56, 1, function()
+            for _, ply in ipairs(player.GetAll()) do
+                ply:EmitSound("ttt/global_final2.mp3", 75, 100, 0.2)
+            end
         end)
 
         if #plys > 0 then
@@ -155,10 +158,13 @@ if SERVER then
     function MINIGAME:OnDeactivation()
         RunConsoleCommand("ttt_haste", "1")
         RunConsoleCommand("ttt_roundtime_minutes", "10")
+        RunConsoleCommand("ttt_haste_starting_minutes", "5")
+        RunConsoleCommand("ttt_item_armor_block_blastdmg", "1")
+        RunConsoleCommand("ttt_item_armor_block_headshots", "1")
 
-        for _, ply in ipairs(player.GetAll()) do
+        --[[for _, ply in ipairs(player.GetAll()) do
             ply:SendLua('RunConsoleCommand("stopsound")')
-        end
+        end]]
 
         if timer.Exists("StartMusic") then
             timer.Remove("StartMusic")
