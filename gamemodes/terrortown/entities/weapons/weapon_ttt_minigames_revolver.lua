@@ -22,7 +22,7 @@ SWEP.builtin = true
 SWEP.spawnType = WEAPON_TYPE_PISTOL
 
 SWEP.Primary.Ammo = "AlyxGun" -- hijack an ammo type we don't use otherwise
-SWEP.Primary.Recoil = 4
+SWEP.Primary.Recoil = 1
 SWEP.Primary.Damage = 37
 SWEP.Primary.Delay = 0.6
 SWEP.Primary.Cone = 0.02
